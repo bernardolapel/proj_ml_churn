@@ -1,0 +1,119 @@
+services:
+  airflow-init:
+    user: "50000:0"
+    image: apache/airflow:3.0.0-python3.9
+    restart: "no"
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/airflow.db
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./mlruns:/mlruns 
+      - airflow_db:/opt/airflow
+    command: airflow db migrate
+    networks:
+      - churn-net
+
+  airflow:
+    user: "50000:0"
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    restart: always
+    depends_on:
+      - airflow-init
+      - mlflow
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/airflow.db
+      AIRFLOW__API__AUTH_BACKEND: airflow.api.auth.backend.default
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./mlruns:/mlruns
+      - airflow_db:/opt/airflow
+    ports:
+      - "8090:8080"
+    command: airflow standalone
+    networks:
+      - churn-net
+
+  scheduler:
+    user: "50000:0"
+    image: apache/airflow:3.0.0-python3.9
+    restart: always
+    depends_on:
+      - airflow
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/airflow.db
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./mlruns:/mlruns
+      - airflow_db:/opt/airflow
+    command: airflow scheduler
+    networks:
+      - churn-net
+
+  mlflow:
+    user: "50000:0"
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    image: mlflow-custom
+    restart: always
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./mlruns:/mlruns
+    environment:
+      - MLFLOW_TRACKING_URI=http://0.0.0.0:5000
+    command: >
+      mlflow server 
+      --backend-store-uri /mlruns 
+      --default-artifact-root /mlruns 
+      --host 0.0.0.0 
+      --port 5000
+    networks:
+      - churn-net
+
+  churn-api:
+    user: "50000:0"
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: always
+    ports:
+      - "5055:5055"
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./mlruns:/mlruns
+    depends_on:
+      - mlflow
+    networks:
+      - churn-net
+
+
+  streamlit:
+    user: "50000:0"
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    container_name: streamlit
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://churn-api:5000/predict
+    depends_on:
+      - churn-api
+    networks:
+      - churn-net
+
+volumes:
+  airflow_db:
+
+networks:
+  churn-net:
+    driver: bridge

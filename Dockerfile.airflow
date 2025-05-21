@@ -1,0 +1,11 @@
+# airflow.Dockerfile
+FROM apache/airflow:3.0.0-python3.9
+
+USER airflow
+
+# Add required packages using Airflow's constraints file
+RUN pip install --no-cache-dir \
+    mlflow \
+    pandas \
+    scikit-learn==1.5.2 \
+    matplotlib 

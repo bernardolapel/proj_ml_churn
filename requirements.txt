@@ -1,0 +1,9 @@
+# requirements.txt
+mlflow
+pandas
+scikit-learn==1.5.2
+apache-airflow
+flask
+fastapi
+uvicorn
+flask-appbuilder
