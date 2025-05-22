@@ -81,7 +81,7 @@ docker-compose up --build
 Once up:
 - 📋 Airflow: [localhost:8090](http://localhost:8090)
 - 📈 MLflow: [localhost:5001](http://localhost:5001)
-- 🧠 Flask API: [localhost:5002](http://localhost:5002)
+- 🧠 Flask API: [localhost:5002](http://localhost:5055)
 - 🖼️ Streamlit: [localhost:8501](http://localhost:8501)
 
 ---
