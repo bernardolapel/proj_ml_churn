@@ -123,4 +123,4 @@ docker-compose down -v --remove-orphans
 
 ## 📝 License
 
-MIT License
+Lapel License
