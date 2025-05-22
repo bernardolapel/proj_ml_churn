@@ -70,6 +70,7 @@ if st.button("Predict"):
                 fig, ax = plt.subplots()
                 ax.bar(["No Churn", "Churn"], [1 - result["prediction"], result["prediction"]], color=["green", "red"])
                 ax.set_ylabel("Confidence")
+                ax.set_ylim(0, 1)
                 st.pyplot(fig)
             else:
                 st.error(f"❌ Unexpected response format:\n{result}")

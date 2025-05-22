@@ -35,31 +35,60 @@ except Exception as e:
 def home():
     return "✅ Churn Prediction API is live!"
 
-@app.route("/predict", methods=["POST"])
+@app.route('/predict', methods=['POST'])
 def predict():
-    if model is None:
-        return jsonify({"error": "Model not loaded"}), 500
+    if model is None or encoders is None:
+        return jsonify({"error": "Model or encoders not loaded"}), 500
 
     try:
         data = request.get_json()
         input_df = pd.DataFrame([data])
 
-        # Encode only categorical columns that were encoded during training
+        # Apply label encoding
         for col, le in encoders.items():
-            if col in input_df.columns:
-                val = input_df[col].values[0]
-                if val not in le.classes_:
-                    return jsonify({"error": f"Unseen label '{val}' in column '{col}'"}), 400
-                input_df[col] = le.transform([val])
-
-        # Numeric columns like TotalCharges are left untouched
+            if col in input_df:
+                input_df[col] = le.transform([input_df[col].values[0]])
 
         prediction = model.predict(input_df)
-        return jsonify({"prediction": int(prediction[0])})
+        prob = model.predict_proba(input_df)[0]  # [0] to get the row, [1] for churn probability
+
+        return jsonify({
+            "prediction": int(prediction[0]),
+            "confidence": round(float(prob[1]), 4)  # probability of churn
+        })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# === Run App ===
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5055)
+
+
+# @app.route("/predict", methods=["POST"])
+# def predict():
+#     if model is None:
+#         return jsonify({"error": "Model not loaded"}), 500
+
+#     try:
+#         data = request.get_json()
+#         input_df = pd.DataFrame([data])
+
+#         # Encode only categorical columns that were encoded during training
+#         for col, le in encoders.items():
+#             if col in input_df.columns:
+#                 val = input_df[col].values[0]
+#                 if val not in le.classes_:
+#                     return jsonify({"error": f"Unseen label '{val}' in column '{col}'"}), 400
+#                 input_df[col] = le.transform([val])
+
+#         # Numeric columns like TotalCharges are left untouched
+
+#         prediction = model.predict(input_df)
+#         return jsonify({"prediction": int(prediction[0])})
+
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+
+# # === Run App ===
+# if __name__ == "__main__":
+#     app.run(host="0.0.0.0", port=5055)
