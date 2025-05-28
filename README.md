@@ -1,6 +1,6 @@
 # 🌀 Churn Prediction ML Pipeline with Airflow, MLflow, Docker & Streamlit
 
-This project is an end-to-end Machine Learning pipeline for predicting customer churn using a RandomForest model. It integrates various tools such as Apache Airflow for orchestration, MLflow for model tracking and registry, Flask for API service, and Streamlit for interactive web UI — all containerized using Docker.
+This project is an end-to-end Machine Learning pipeline for predicting customer churn using a RandomForest/Logistic Regression model. It integrates various tools such as Apache Airflow for orchestration, MLflow for model tracking and registry, Flask for API service, and Streamlit for interactive web UI — all containerized using Docker.
 
 ---
 
